@@ -6,6 +6,8 @@ export class CustomWorld extends World {
   browser!: Browser;
   context!: BrowserContext;
   page!: Page;
+  scenarioName!: string;
+
 }
 
 setWorldConstructor(CustomWorld);
