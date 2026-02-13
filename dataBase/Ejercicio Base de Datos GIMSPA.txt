@@ -1,0 +1,227 @@
+
+USE DOCKER PARA EL SERVIDOR POSTGRES
+
+Imagen oficial de postgres
+https://hub.docker.com/_/postgres
+
+POSTGRES_USER=admin 
+POSTGRES_PASSWORD=admin123 
+POSTGRES_DB=gimspa 
+
+docker run --name postgres-local -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=admin123 -e POSTGRES_DB=gimspa -p 5432:5432 -d postgres
+
+
+DBeaver para conectarme
+
+-------------------INICIO SCRIPTS DE CREACIÓN DE TABLAS------------------------------
+CREATE TABLE Cliente (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    apellidos VARCHAR(100) NOT NULL,
+    ciudad VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE Sucursal (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    ciudad VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE Producto (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    tipoProducto VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE Inscripcion (
+    idProducto INT NOT NULL,
+    idCliente INT NOT NULL,
+    PRIMARY KEY (idProducto, idCliente),
+    FOREIGN KEY (idProducto) REFERENCES Producto(id),
+    FOREIGN KEY (idCliente) REFERENCES Cliente(id)
+);
+
+CREATE TABLE Disponibilidad (
+    idSucursal INT NOT NULL,
+    idProducto INT NOT NULL,
+    PRIMARY KEY (idSucursal, idProducto),
+    FOREIGN KEY (idSucursal) REFERENCES Sucursal(id),
+    FOREIGN KEY (idProducto) REFERENCES Producto(id)
+);
+
+CREATE TABLE Visitan (
+    idSucursal INT NOT NULL,
+    idCliente INT NOT NULL,
+    fechaVisita DATE NOT NULL,
+    PRIMARY KEY (idSucursal, idCliente, fechaVisita),
+    FOREIGN KEY (idSucursal) REFERENCES Sucursal(id),
+    FOREIGN KEY (idCliente) REFERENCES Cliente(id)
+);
+-------------------FIN SCRIPTS DE CREACIÓN DE TABLAS------------------------------
+
+
+-------------------INICIO SCRIPTS DE POBLAR DATOS DE TABLAS------------------------------
+INSERT INTO Cliente (nombre, apellidos, ciudad) VALUES
+('Carlos','Ramirez','Bogotá'),
+('Ana','Gomez','Medellín'),
+('Luis','Martinez','Cali'),
+('Laura','Torres','Barranquilla'),
+('Jorge','Castro','Cartagena'),
+('Maria','Fernandez','Bogotá'),
+('Pedro','Lopez','Cali'),
+('Sofia','Rojas','Medellín'),
+('Andres','Morales','Bogotá'),
+('Valentina','Herrera','Bucaramanga'),
+('Diego','Vargas','Cali'),
+('Camila','Mendoza','Medellín'),
+('Sebastian','Ortiz','Bogotá'),
+('Daniela','Silva','Barranquilla'),
+('Mateo','Suarez','Cartagena'),
+('Mateo','Sin Visitas','Cartagena'),
+('Paula','Navarro','Bogotá'),
+('Nicolas','Reyes','Cali'),
+('Isabella','Cruz','Medellín'),
+('David','Pardo','Bucaramanga'),
+('Juliana','Acosta','Bogotá');
+
+
+INSERT INTO Sucursal (nombre, ciudad) VALUES
+('GimSpa Centro','Bogotá'),
+('GimSpa Norte','Medellín'),
+('GimSpa Sur','Cali'),
+('GimSpa Caribe','Barranquilla'),
+('GimSpa Premium','Cartagena');
+
+
+INSERT INTO Producto (nombre, tipoProducto) VALUES
+('Membresia Basica','Membresia'),
+('Membresia Premium','Membresia'),
+('Clase Yoga','Clase'),
+('Clase Spinning','Clase'),
+('Masaje Relajante','Servicio'),
+('Spa Termal','Servicio');
+
+
+INSERT INTO Disponibilidad (idSucursal, idProducto) VALUES
+(1,1),(1,2),(1,3),(1,5),
+(2,1),(2,2),(2,4),(2,6),
+(3,1),(3,3),(3,4),(3,5),
+(4,1),(4,2),(4,6),
+(5,2),(5,3),(5,5),(5,6);
+
+INSERT INTO Inscripcion (idProducto, idCliente) VALUES
+(1,1),(2,2),(3,3),(4,4),(5,5),
+(6,1),(6,2),(6,3),(6,4),(6,5),
+(1,6),(2,7),(3,8),(4,9),(5,10),
+(2,11),(3,12),(1,13),(4,14),(6,15),
+(5,16),(2,17),(3,18),(1,19),(6,20);
+
+INSERT INTO Visitan (idSucursal, idCliente, fechaVisita) VALUES
+(1,1,'2026-01-10'),
+(2,2,'2026-01-11'),
+(3,3,'2026-01-12'),
+(4,4,'2026-01-13'),
+(5,5,'2026-01-14'),
+(1,6,'2026-01-15'),
+(2,7,'2026-01-16'),
+(3,8,'2026-01-17'),
+(4,9,'2026-01-18'),
+(5,10,'2026-01-19'),
+(1,11,'2026-01-20'),
+(2,12,'2026-01-21'),
+(3,13,'2026-01-22'),
+(4,14,'2026-01-23'),
+(5,15,'2026-01-24'),
+(1,16,'2026-01-25'),
+(2,17,'2026-01-26'),
+(3,18,'2026-01-27'),
+(4,19,'2026-01-28'),
+(5,20,'2026-01-29'),
+(1,1,'2026-02-01'),
+(2,2,'2026-02-02'),
+(3,3,'2026-02-03'),
+(4,4,'2026-02-04'),
+(5,5,'2026-02-05'),
+(1,6,'2026-02-06'),
+(2,7,'2026-02-07'),
+(3,8,'2026-02-08'),
+(4,9,'2026-02-01'),
+(5,10,'2026-02-02'),
+(1,11,'2026-02-03'),
+(2,12,'2026-02-04'),
+(3,13,'2026-02-05'),
+(4,14,'2026-02-06'),
+(5,15,'2026-02-07'),
+(1,16,'2026-02-08'),
+(2,17,'2026-02-09'),
+(3,18,'2026-02-10'),
+(4,19,'2026-02-11'),
+(5,20,'2026-02-12');
+
+-------------------FIN SCRIPTS DE POBLAR DATOS DE TABLAS------------------------------
+
+
+Query 1
+Listar nombre completo de clientes que han visitado la sucursal "GimSpa Norte" en el último mes
+SELECT DISTINCT c.nombre || ' ' || c.apellidos AS nombre_completo
+FROM Visitan v
+JOIN Cliente c ON v.idCliente = c.id
+JOIN Sucursal s ON v.idSucursal = s.id
+WHERE s.nombre = 'GimSpa Norte' AND v.fechaVisita >= CURRENT_DATE - INTERVAL '1 month';
+  
+Bonus. Si quieren ver cuantas veces visito un usuario la sede podemos agregar la fechaVisita y quitar el distinto; repetira nombre pero se guia por las visitas
+SELECT c.nombre || ' ' || c.apellidos AS nombre_completo, v.fechaVisita
+FROM Visitan v
+JOIN Cliente c ON v.idCliente = c.id
+JOIN Sucursal s ON v.idSucursal = s.id
+WHERE s.nombre = 'GimSpa Norte' AND v.fechaVisita >= CURRENT_DATE - INTERVAL '1 month';
+
+
+Query 2
+Cuántos clientes distintos han visitado cada sucursal (orden descendente)
+SELECT s.nombre, COUNT(DISTINCT v.idCliente) AS cantidad_clientes
+FROM Sucursal s
+LEFT JOIN Visitan v ON s.id = v.idSucursal
+GROUP BY s.nombre
+ORDER BY cantidad_clientes DESC;
+
+
+Query 3
+Productos disponibles en Medellín pero NO en Bogotá
+SELECT p.nombre
+FROM Producto p
+JOIN Disponibilidad d1 ON p.id = d1.idProducto
+JOIN Sucursal s1 ON d1.idSucursal = s1.id
+WHERE s1.ciudad = 'Medellín'
+
+EXCEPT
+
+SELECT p.nombre
+FROM Producto p
+JOIN Disponibilidad d2 ON p.id = d2.idProducto
+JOIN Sucursal s2 ON d2.idSucursal = s2.id
+WHERE s2.ciudad = 'Bogotá';
+
+
+
+Query 4
+Clientes inscritos en más de 2 productos (Lo interprete como mayor o igual o minimo dos productos)
+SELECT  c.nombre, c.apellidos, COUNT(i.idproducto) AS cantidad_productos
+FROM Cliente c
+JOIN Inscripcion i ON c.id = i.idcliente 
+GROUP BY c.id, c.nombre, c.apellidos
+HAVING COUNT(i.idproducto) >= 2;
+
+
+Query 5
+Para cada cliente, mostrar su última visita (fecha más reciente) y a qué sucursal fue. Si no ha visitado, mostrar "Sin visitas".
+SELECT c.nombre, c.apellidos, COALESCE(s.nombre, 'Sin visitas') AS sucursal, v.fechaVisita AS ultima_visita
+FROM Cliente c
+LEFT JOIN LATERAL (
+    SELECT idSucursal, fechaVisita
+    FROM Visitan
+    WHERE idCliente = c.id
+    ORDER BY fechaVisita DESC
+    LIMIT 1
+) v ON TRUE LEFT JOIN Sucursal s ON v.idSucursal = s.id
+ORDER BY c.nombre;

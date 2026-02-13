@@ -57,13 +57,6 @@ npx cucumber-js
 ```bash
 npx cucumber-js --tags "@smoke"
 ```
-
-O si está definido en package.json:
-
-```bash
-npm run test:smoke
-```
-
 ---
 
 # 📊 4️⃣ Abrir el reporte HTML generado
